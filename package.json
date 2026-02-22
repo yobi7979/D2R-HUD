@@ -1,0 +1,47 @@
+{
+    "name": "d2r-navigator-root",
+    "version": "1.1.1",
+    "description": "D2R-Navigator root orchestration",
+    "main": "index.js",
+    "scripts": {
+        "web:dev": "npm run dev --prefix web",
+        "web:build": "npm run build --prefix web",
+        "app:start": "electron .",
+        "dev": "concurrently \"npm run web:dev\" \"npm run app:start\"",
+        "clean:proc": "taskkill /F /IM D2R-HUD.exe /T /FI \"MEMUSAGE gt 0\" 2>nul || exit 0",
+        "clean:release": "if exist release rmdir /s /q release",
+        "clean:cache": "if exist %LOCALAPPDATA%\\electron-builder\\Cache\\winCodeSign rmdir /s /q %LOCALAPPDATA%\\electron-builder\\Cache\\winCodeSign",
+        "app:package": "npx -y electron-packager . D2R-HUD --platform=win32 --arch=x64 --out=release --overwrite --icon=web/public/favicon.ico --ignore=\"(web|release|scripts|brain|\\.git|\\.agent|\\.vscode|\\.wrangler|README\\.md|tsconfig\\.json|package-lock\\.json|\\.patch|\\.txt|가이드|수정본|release_info)\"",
+        "dist": "npm run clean:proc && npm run clean:release && npm run web:build && npm run app:package",
+        "deploy": "npm run web:build && node web/prune-assets.js && npx wrangler pages deploy web/dist --project-name d2hud --branch main"
+    },
+    "build": {
+        "appId": "com.yobi.d2hud",
+        "productName": "D2R-HUD",
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            "index.js"
+        ],
+        "win": {
+            "target": "nsis",
+            "artifactName": "D2R-HUD-Setup.${ext}",
+            "forceCodeSigning": false
+        },
+        "nsis": {
+            "oneClick": true,
+            "allowToChangeInstallationDirectory": false,
+            "createDesktopShortcut": true,
+            "runAfterFinish": true
+        }
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "concurrently": "^8.2.2",
+        "electron": "^30.0.0",
+        "electron-builder": "^26.8.1",
+        "electron-packager": "^17.1.2"
+    }
+}
